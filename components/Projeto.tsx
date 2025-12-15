@@ -13,14 +13,7 @@ const Projeto: React.FC<ProjetoProps> = ({ nome, url }) => {
         <span className="font-semibold text-slate-50">{nome}</span>.
       </p>
 
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex w-fit items-center justify-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition"
-      >
-        Ver projeto
-      </a>
+      <a href={url} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center justify-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition"> Ver projeto </a>
     </article>
   );
 };

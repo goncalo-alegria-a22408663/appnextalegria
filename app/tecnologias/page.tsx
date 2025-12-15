@@ -1,18 +1,15 @@
-import tecnologias from '@/app/data/tecnologias.json';
-import TecnologiaCard, {
-  TecnologiaCardProps,
-} from '@/components/TecnologiaCard';
+import tecnologiasJson from "../data/tecnologias.json";
+import TecnologiaCard from "@/components/TecnologiaCard/TecnologiaCard";
+import Link from "next/link";
 
-type TecnologiaExtra = {
+type Tecnologia = {
+  title: string;
+  image: string;
   description: string;
   rating: number;
 };
 
-type Tecnologia = TecnologiaCardProps & TecnologiaExtra;
-
-const tecnologiasData: Tecnologia[] = JSON.parse(
-  JSON.stringify(tecnologias)
-);
+const tecnologias = tecnologiasJson as Tecnologia[];
 
 export default function TecnologiasPage() {
   return (
@@ -21,14 +18,11 @@ export default function TecnologiasPage() {
         Tecnologias Exploradas
       </h2>
 
-      <div className="flex flex-wrap justify-center gap-6">
-        {tecnologiasData.map((tech, index) => (
-          <TecnologiaCard
-            key={tech.title}
-            title={tech.title}
-            image={tech.image}
-            index={index}
-          />
+      <div className="mt-4 flex flex-wrap justify-center gap-6">
+        {tecnologias.map((t, i) => (
+          <Link key={t.title} href={`/tecnologias/${i}`} className="block">
+            <TecnologiaCard title={t.title} image={t.image} index={i} />
+          </Link>
         ))}
       </div>
     </main>

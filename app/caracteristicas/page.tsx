@@ -1,32 +1,20 @@
-
 "use client";
+
+import Caracteristica from "@/components/Caracteristica";
+import { caracteristicas } from "@/app/data/caracteristicas";
+
 export default function CaracteristicasPage() {
-
-  const caracteristicas = [
-    'JSX, sintaxe que mistura HTML e JS.',
-    'Componentes, funções que retornam JSX.',
-    'Componentes Reutilizáveis e Modulares.',
-    'Roteamento Automático e APIs.',
-    'Hooks: useState, useEffect e useSWR.',
-    'Renderização Rápida e SEO Friendly.',
-    'TypeScript Seguro e Escalável.',
-    'Comunidade Ativa e Popularidade.'
-  ];
-
-  function teste() {
-    alert('Clicou nas características!');
-  }
-
   return (
+    <main className="min-h-screen bg-slate-950 px-4 py-8">
+      <h2 className="mb-6 text-center text-3xl font-bold text-slate-100">
+        Características do React e Next.js
+      </h2>
 
-    <div >
-      <h2>Características do React e Next.js</h2>
-      <ul>
-        {caracteristicas.map((item, index) => (
-          <li key={index}>{item}</li>
+      <ul className="mx-auto max-w-2xl list-disc space-y-2 pl-6">
+        {caracteristicas.map((caracteristica, index) => (
+          <Caracteristica key={index} index={index} texto={caracteristica} />
         ))}
       </ul>
-      <button onClick={teste}>Clique Aqui</button>
-    </div>
+    </main>
   );
-};
+}

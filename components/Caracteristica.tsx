@@ -1,23 +1,19 @@
-import React from 'react';
-import Link from 'next/link';
+import Link from "next/link";
 
-export interface CaracteristicaProps {
+export type CaracteristicaProps = {
+  index: number;
   texto: string;
-}
+};
 
-const Caracteristica: React.FC<CaracteristicaProps> = ({ texto }) => {
+export default function Caracteristica({ index, texto }: CaracteristicaProps) {
   return (
     <Link
-      href={`/caracteristicas/${encodeURIComponent(texto)}`}
-      className="block"
+      href={`/caracteristicas/${index}`}
+      className="block w-full max-w-xl"
     >
-      <div className="w-64 h-20 rounded-xl bg-slate-900 border border-slate-800 shadow flex items-center justify-center px-4 hover:border-emerald-400 transition">
-        <span className="text-slate-50 text-center font-medium">
-          {texto}
-        </span>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-slate-100 hover:bg-slate-900 transition">
+        <p className="text-base">{texto}</p>
       </div>
     </Link>
   );
-};
-
-export default Caracteristica;
+}
