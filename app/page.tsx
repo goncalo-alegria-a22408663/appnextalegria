@@ -13,6 +13,9 @@ export default function page() {
           <Link href="/caracteristicas">Características</Link>
           <Link href="/tecnologias">Tecnologias</Link>
           <Link href="/projetos">Projetos</Link>
+          <Link href="/contador">Contador</Link>
+          <Link href="/input">Input</Link>
+
 
         </nav>
       </header>

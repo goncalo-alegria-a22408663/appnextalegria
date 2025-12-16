@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Relogio from "@/components/Relogio/Relogio";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +37,26 @@ export default function RootLayout({
           {children}
         </main>
         
-        <footer>{data.getFullYear()}</footer>
+        <footer className="mt-auto border-t border-slate-800/70 bg-slate-950/70 backdrop-blur">
+  <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-1">
+      <p className="text-sm font-semibold text-slate-200">React & Next.js</p>
+      <p className="text-xs text-slate-400">
+        © {new Date().getFullYear()} 
+      </p>
+    </div>
+
+    <div className="flex items-center justify-between gap-4 sm:justify-end">
+      
+
+      <div className="rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1">
+        <Relogio />
+      </div>
+    </div>
+  </div>
+</footer>
+
+
 
       </body>
     </html>

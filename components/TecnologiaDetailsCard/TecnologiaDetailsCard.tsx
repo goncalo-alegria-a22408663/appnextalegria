@@ -1,4 +1,5 @@
 import Image from "next/image";
+import ContadorPersonalizado from "@/components/ContadorPersonalizado/ContadorPersonalizado";
 
 export type TecnologiaDetailsCardProps = {
   title: string;
@@ -27,6 +28,8 @@ export default function TecnologiaDetailsCard({
 
       <p>{description}</p>
       <p className="font-semibold">Rating: {rating}</p>
+
+      <ContadorPersonalizado title={title} />
     </div>
   );
 }

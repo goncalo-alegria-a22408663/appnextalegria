@@ -21,7 +21,7 @@ export default function TecnologiasPage() {
       <div className="mt-4 flex flex-wrap justify-center gap-6">
         {tecnologias.map((t, i) => (
           <Link key={t.title} href={`/tecnologias/${i}`} className="block">
-            <TecnologiaCard title={t.title} image={t.image} index={i} />
+            <TecnologiaCard title={t.title} image={t.image} />
           </Link>
         ))}
       </div>
