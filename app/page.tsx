@@ -17,6 +17,7 @@ export default function page() {
           <Link href="/input">Input</Link>
           <Link href="/produtos">Produtos</Link>
           <Link href="/categorias">Categorias</Link>
+          <Link href="/paises">Países</Link>
 
         </nav>
       </header>

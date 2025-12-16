@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/models/interfaces";
 import { apiUrl, swrFetcher } from "@/lib/deisishop";
 import ProdutoCard from "@/components/ProdutoCard/ProdutoCard";
+import ProdutosRecentes from "@/components/ProdutosRecentes/ProdutosRecentes";
 
 const PRODUCTS_URL = `${apiUrl}/products`;
 const BUY_URL = `${apiUrl}/buy`;
@@ -234,6 +235,8 @@ export default function ProdutosPage() {
       <h2 className="mb-6 text-center text-3xl font-bold text-slate-100">
         Produtos (DEISIShop)
       </h2>
+
+      <ProdutosRecentes />
 
       {/* Pesquisa + Ordenação */}
       <div className="mx-auto mb-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
