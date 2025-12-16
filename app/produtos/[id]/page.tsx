@@ -1,38 +1,51 @@
-import Link from "next/link";
+"use client";
 
-export default function ProdutosPage() {
+import useSWR from "swr";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import type { Product } from "@/models/interfaces";
+import { apiUrl, swrFetcher } from "@/lib/deisishop";
+import ProdutoDetalhe from "@/components/ProdutoDetalhe/ProdutoDetalhe";
+
+export default function ProdutoPage() {
+  const params = useParams();
+  const id = (params?.id as string | undefined) ?? "";
+
+  const url = id ? `${apiUrl}/products/${id}` : null;
+
+  const { data, error, isLoading } = useSWR<Product>(url, swrFetcher);
+
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100">
-      <h2 className="mb-6 text-center text-3xl font-bold">
-        Produtos (DEISIShop)
+    <main className="min-h-screen bg-slate-950 px-4 py-8">
+      <h2 className="mb-8 text-center text-3xl font-bold text-slate-100">
+        Produto
       </h2>
 
-      <div className="mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-slate-300">
-          Aqui vais apresentar a lista de produtos e as respetivas imagens quando integrares a API.
-        </p>
-
-        <div className="mt-6">
-          <p className="mb-2 text-sm font-semibold text-slate-200">
-            Links de teste (rota dinâmica):
-          </p>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/produtos/1"
-              className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition"
-            >
-              Ver produto 1
-            </Link>
-
-            <Link
-              href="/produtos/2"
-              className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition"
-            >
-              Ver produto 2
-            </Link>
-          </div>
+      {error && (
+        <div className="mx-auto max-w-xl rounded-xl border border-red-700 bg-red-950/40 p-4 text-red-200">
+          Erro a obter produto: {error.message}
         </div>
+      )}
+
+      {!data && isLoading && (
+        <div className="flex justify-center py-10">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-slate-200" />
+        </div>
+      )}
+
+      {data && (
+        <div className="flex justify-center">
+          <ProdutoDetalhe product={data} />
+        </div>
+      )}
+
+      <div className="mt-8 flex justify-center">
+        <Link
+          href="/produtos"
+          className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 hover:bg-slate-700 transition"
+        >
+          Voltar à lista
+        </Link>
       </div>
     </main>
   );

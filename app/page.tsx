@@ -15,7 +15,8 @@ export default function page() {
           <Link href="/projetos">Projetos</Link>
           <Link href="/contador">Contador</Link>
           <Link href="/input">Input</Link>
-
+          <Link href="/produtos">Produtos</Link>
+          <Link href="/categorias">Categorias</Link>
 
         </nav>
       </header>

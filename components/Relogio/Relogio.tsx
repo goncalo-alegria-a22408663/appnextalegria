@@ -2,25 +2,29 @@
 
 import { useEffect, useState } from "react";
 
-function pad2(n: number) {
+function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
 export default function Relogio() {
-  const [now, setNow] = useState<Date>(() => new Date());
+
+
+  const [time, setTime] = useState("--:--:--");
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const tick = () => {
+      const d = new Date();
+      setTime(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`);
+    };
+
+    tick(); 
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
-  const h = pad2(now.getHours());
-  const m = pad2(now.getMinutes());
-  const s = pad2(now.getSeconds());
-
   return (
-    <div className="text-sm text-slate-300">
-      {h}:{m}:{s}
+    <div className="text-sm text-slate-300 tabular-nums">
+      {time}
     </div>
   );
 }

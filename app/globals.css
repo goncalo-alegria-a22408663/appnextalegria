@@ -44,3 +44,47 @@ ul {
 }
 
 li {margin-top: 6px;}
+
+/* --- FIX: nada sai fora do ecrã --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* --- FIX: textos longos podem quebrar --- */
+h1, h2, p, li, a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* --- FIX: menu/header com muitos links deve quebrar linha --- */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 12px;
+  text-align: center;
+}
+
+nav a {
+  white-space: normal; /* permite quebrar */
+}
+
+header ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 12px;
+  margin: 0;
+  list-style: none;
+}
+
