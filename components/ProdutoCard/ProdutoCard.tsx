@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/models/interfaces";
 import { toAbsoluteUrl } from "@/lib/deisishop";
-import { addProdutoRecente } from "@/components/ProdutosRecentes/ProdutosRecentes";
 
 type Props = {
   product: Product;
@@ -26,14 +25,7 @@ export default function ProdutoCard({
   const img = toAbsoluteUrl(product.image);
   const router = useRouter();
 
-  async function handleInfoClick() {
-    try {
-      addProdutoRecente(product);
-    } catch {
-      // ignore
-    }
-    router.push(`/produtos/${product.id}`);
-  }
+  
 
   return (
     <div className="w-64 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
@@ -74,31 +66,7 @@ export default function ProdutoCard({
         )}
       </div>
 
-      <div className="mt-4 flex justify-center gap-2">
-        <button
-          onClick={handleInfoClick}
-          className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 hover:bg-slate-700 transition"
-        >
-          +info
-        </button>
 
-        {variant === "list" ? (
-          <button
-            onClick={() => onAddToCart?.(product)}
-            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition"
-          >
-            🤍
-          </button>
-          
-        ) : (
-          <button
-            onClick={() => onRemoveOneFromCart?.(product.id)}
-            className="rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-red-400 transition"
-          >
-            ❤️
-          </button>
-        )}
-      </div>
     </div>
   );
 }

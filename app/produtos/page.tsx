@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/models/interfaces";
 import { apiUrl, swrFetcher } from "@/lib/deisishop";
 import ProdutoCard from "@/components/ProdutoCard/ProdutoCard";
-import ProdutosRecentes from "@/components/ProdutosRecentes/ProdutosRecentes";
 
 const PRODUCTS_URL = `${apiUrl}/products`;
 const BUY_URL = `${apiUrl}/buy`;
@@ -13,10 +12,7 @@ const CART_KEY = "deisishop_cart";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
-type CartItem = {
-  product: Product;
-  quantity: number;
-};
+type CartItem = { product: Product; quantity: number };
 
 type PurchaseInfo = {
   subtotal: number;
@@ -26,98 +22,57 @@ type PurchaseInfo = {
   error?: string;
 };
 
-function isCartItemArray(value: any): value is CartItem[] {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (it) =>
-        it &&
-        typeof it === "object" &&
-        "product" in it &&
-        "quantity" in it &&
-        typeof it.quantity === "number"
-    )
-  );
-}
-
-function isProductArray(value: any): value is Product[] {
-  return (
-    Array.isArray(value) &&
-    value.every((p) => p && typeof p === "object" && "id" in p && "title" in p)
-  );
-}
-
 function readCartFromStorage(): CartItem[] {
   try {
     const raw = localStorage.getItem(CART_KEY);
-    if (!raw) return [];
+    const parsed = raw ? JSON.parse(raw) : [];
 
-    const parsed = JSON.parse(raw);
-
-    if (isCartItemArray(parsed)) return parsed;
-
-    if (isProductArray(parsed)) {
-      return parsed.map((p) => ({ product: p, quantity: 1 }));
+    // formato novo: [{ product, quantity }]
+    if (
+      Array.isArray(parsed) &&
+      parsed.every((it) => it?.product?.id != null && typeof it.quantity === "number")
+    ) {
+      return parsed;
     }
 
-    return [];
-  } catch {
-    return [];
-  }
+    // formato antigo: [Product]
+    if (Array.isArray(parsed) && parsed.every((p) => p?.id != null && p?.title != null)) {
+      return parsed.map((p) => ({ product: p, quantity: 1 }));
+    }
+  } catch {}
+
+  return [];
 }
 
 export default function ProdutosPage() {
   const { data, error, isLoading } = useSWR<Product[]>(PRODUCTS_URL, swrFetcher);
 
-  // pesquisa + ordenação
-  const [search, setSearch] = useState<string>("");
-  const [filteredData, setFilteredData] = useState<Product[]>([]);
+  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("name-asc");
 
-  // carrinho
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // comprar
-  const [name, setName] = useState<string>("");
-  const [student, setStudent] = useState<boolean>(false);
-  const [coupon, setCoupon] = useState<string>("");
+  const [name, setName] = useState("");
+  const [student, setStudent] = useState(false);
+  const [coupon, setCoupon] = useState("");
 
-  const [buying, setBuying] = useState<boolean>(false);
+  const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
   const [purchaseInfo, setPurchaseInfo] = useState<PurchaseInfo | null>(null);
 
+  const resetBuyUI = () => (setBuyError(null), setPurchaseInfo(null));
   const discountActive = student || coupon.trim().length > 0;
 
-  // carregar carrinho 1x
-  useEffect(() => {
-    setCart(readCartFromStorage());
-  }, []);
+  useEffect(() => setCart(readCartFromStorage()), []);
+  useEffect(() => localStorage.setItem(CART_KEY, JSON.stringify(cart)), [cart]);
 
-  // guardar carrinho sempre que muda
-  useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-  }, [cart]);
-
-  // filtrar
-  useEffect(() => {
-    if (!data) {
-      setFilteredData([]);
-      return;
-    }
-
+  const shownProducts = useMemo(() => {
+    if (!data) return [];
     const q = search.toLowerCase().trim();
-    if (!q) {
-      setFilteredData(data);
-      return;
-    }
 
-    setFilteredData(data.filter((p) => p.title.toLowerCase().includes(q)));
-  }, [search, data]);
+    const filtered = !q ? data : data.filter((p) => p.title.toLowerCase().includes(q));
 
-  // ordenar
-  const sortedData = useMemo(() => {
-    const arr = [...filteredData];
-    arr.sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       switch (sort) {
         case "name-asc":
           return a.title.localeCompare(b.title);
@@ -127,31 +82,24 @@ export default function ProdutosPage() {
           return Number(a.price) - Number(b.price);
         case "price-desc":
           return Number(b.price) - Number(a.price);
-        default:
-          return 0;
       }
     });
-    return arr;
-  }, [filteredData, sort]);
+  }, [data, search, sort]);
 
   function addToCart(product: Product) {
-    setBuyError(null);
-    setPurchaseInfo(null);
-
+    resetBuyUI();
     setCart((prev) => {
-      const idx = prev.findIndex((it) => it.product.id === product.id);
-      if (idx === -1) return [...prev, { product, quantity: 1 }];
-
-      return prev.map((it) =>
-        it.product.id === product.id ? { ...it, quantity: it.quantity + 1 } : it
-      );
+      const found = prev.find((it) => it.product.id === product.id);
+      return found
+        ? prev.map((it) =>
+            it.product.id === product.id ? { ...it, quantity: it.quantity + 1 } : it
+          )
+        : [...prev, { product, quantity: 1 }];
     });
   }
 
   function removeOneFromCart(productId: number) {
-    setBuyError(null);
-    setPurchaseInfo(null);
-
+    resetBuyUI();
     setCart((prev) =>
       prev
         .map((it) =>
@@ -161,22 +109,21 @@ export default function ProdutosPage() {
     );
   }
 
-  const subtotal = useMemo(() => {
-    return cart.reduce(
-      (sum, it) => sum + Number(it.product.price) * it.quantity,
-      0
-    );
-  }, [cart]);
+  const subtotal = cart.reduce(
+    (sum, it) => sum + Number(it.product.price) * it.quantity,
+    0
+  );
+
+  const savings =
+    purchaseInfo?.totalCost != null ? purchaseInfo.subtotal - purchaseInfo.totalCost : null;
 
   async function handleBuy() {
-    if (cart.length === 0) return;
-    if (!name.trim()) return;
+    if (cart.length === 0 || !name.trim()) return;
 
     setBuying(true);
     setBuyError(null);
 
     const subtotalNow = subtotal;
-
     const productIds = cart.flatMap((it) =>
       Array.from({ length: it.quantity }, () => it.product.id)
     );
@@ -193,17 +140,10 @@ export default function ProdutosPage() {
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || res.statusText);
-      }
+      if (!res.ok) throw new Error((await res.text().catch(() => "")) || res.statusText);
 
       const json = await res.json();
-
-      const apiTotal =
-        typeof json?.totalCost === "string" || typeof json?.totalCost === "number"
-          ? Number(json.totalCost)
-          : null;
+      const apiTotal = json?.totalCost != null ? Number(json.totalCost) : null;
 
       setPurchaseInfo({
         subtotal: subtotalNow,
@@ -213,9 +153,8 @@ export default function ProdutosPage() {
         error: json?.error,
       });
 
-      // limpar carrinho após compra
       setCart([]);
-      localStorage.setItem(CART_KEY, JSON.stringify([]));
+      localStorage.setItem(CART_KEY, "[]");
     } catch (e: any) {
       setBuyError(e?.message ?? "Erro ao comprar");
     } finally {
@@ -223,20 +162,11 @@ export default function ProdutosPage() {
     }
   }
 
-  const savings = useMemo(() => {
-    if (purchaseInfo?.totalCost === null || purchaseInfo?.totalCost === undefined)
-      return null;
-    const diff = purchaseInfo.subtotal - purchaseInfo.totalCost;
-    return Number.isFinite(diff) ? diff : null;
-  }, [purchaseInfo]);
-
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-8">
       <h2 className="mb-6 text-center text-3xl font-bold text-slate-100">
         Produtos (DEISIShop)
       </h2>
-
-      <ProdutosRecentes />
 
       {/* Pesquisa + Ordenação */}
       <div className="mx-auto mb-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
@@ -286,9 +216,9 @@ export default function ProdutosPage() {
         <section>
           <h3 className="mb-4 text-xl font-bold text-slate-100">Produtos</h3>
 
-          {sortedData.length > 0 ? (
+          {shownProducts.length ? (
             <div className="flex flex-wrap justify-center gap-6">
-              {sortedData.map((p) => (
+              {shownProducts.map((p) => (
                 <ProdutoCard
                   key={p.id}
                   product={p}
@@ -318,32 +248,26 @@ export default function ProdutosPage() {
               </span>
             </p>
 
-            {purchaseInfo?.totalCost !== null &&
-              purchaseInfo?.totalCost !== undefined &&
-              discountActive && (
-                <>
-                  <p className="text-sm font-semibold text-emerald-300">
-                    Total (compra): {purchaseInfo.totalCost.toFixed(2)}€
+            {purchaseInfo?.totalCost != null && discountActive && (
+              <>
+                <p className="text-sm font-semibold text-emerald-300">
+                  Total (compra): {purchaseInfo.totalCost.toFixed(2)}€
+                </p>
+                {savings != null && savings > 0 && (
+                  <p className="text-xs text-emerald-200">
+                    Poupança: {savings.toFixed(2)}€
                   </p>
-                  {savings !== null && savings > 0 && (
-                    <p className="text-xs text-emerald-200">
-                      Poupança: {savings.toFixed(2)}€
-                    </p>
-                  )}
-                </>
-              )}
+                )}
+              </>
+            )}
           </div>
         </div>
 
-        {/* CHECKOUT + CONFIRMAÇÃO: SEMPRE EM COLUNA (confirmação por baixo) */}
         <div className="mb-6 space-y-6">
-          {/* Card do checkout */}
           <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h4 className="text-lg font-bold text-slate-100">
-                  Finalizar compra
-                </h4>
+                <h4 className="text-lg font-bold text-slate-100">Finalizar compra</h4>
                 <p className="text-sm text-slate-400">
                   Confirma os dados e finaliza o pedido.
                 </p>
@@ -351,31 +275,21 @@ export default function ProdutosPage() {
 
               <div className="text-left sm:text-right">
                 <p className="text-xs text-slate-400">Subtotal</p>
-                <p className="font-semibold text-slate-100">
-                  {subtotal.toFixed(2)}€
-                </p>
+                <p className="font-semibold text-slate-100">{subtotal.toFixed(2)}€</p>
 
-                {purchaseInfo?.totalCost !== null &&
-                  purchaseInfo?.totalCost !== undefined &&
-                  discountActive && (
-                    <>
-                      <p className="mt-2 text-xs text-slate-400">
-                        Total (desconto)
+                {purchaseInfo?.totalCost != null && discountActive && (
+                  <>
+                    <p className="mt-2 text-xs text-slate-400">Total (desconto)</p>
+                    <p className="font-semibold text-emerald-300">
+                      {purchaseInfo.totalCost.toFixed(2)}€
+                    </p>
+                    {savings != null && savings > 0 && (
+                      <p className="text-xs text-emerald-200">
+                        Poupança: {savings.toFixed(2)}€
                       </p>
-                      <p className="font-semibold text-emerald-300">
-                        {purchaseInfo.totalCost.toFixed(2)}€
-                      </p>
-                      {purchaseInfo.subtotal - purchaseInfo.totalCost > 0 && (
-                        <p className="text-xs text-emerald-200">
-                          Poupança:{" "}
-                          {(
-                            purchaseInfo.subtotal - purchaseInfo.totalCost
-                          ).toFixed(2)}
-                          €
-                        </p>
-                      )}
-                    </>
-                  )}
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
@@ -438,7 +352,6 @@ export default function ProdutosPage() {
             </div>
           </div>
 
-          {/* Card da confirmação (agora SEMPRE por baixo) */}
           {purchaseInfo && (
             <div className="rounded-2xl border border-emerald-700 bg-emerald-950/20 p-5 text-emerald-200">
               <p className="text-lg font-semibold">Compra registada ✅</p>
@@ -470,17 +383,12 @@ export default function ProdutosPage() {
                 </div>
               </div>
 
-              {purchaseInfo.totalCost !== null &&
-                purchaseInfo.totalCost !== undefined &&
-                purchaseInfo.subtotal - purchaseInfo.totalCost > 0 && (
-                  <p className="mt-3 text-sm text-emerald-300">
-                    Poupaste{" "}
-                    <span className="font-semibold">
-                      {(purchaseInfo.subtotal - purchaseInfo.totalCost).toFixed(2)}€
-                    </span>
-                    .
-                  </p>
-                )}
+              {savings != null && savings > 0 && (
+                <p className="mt-3 text-sm text-emerald-300">
+                  Poupaste{" "}
+                  <span className="font-semibold">{savings.toFixed(2)}€</span>.
+                </p>
+              )}
 
               {purchaseInfo.error && (
                 <p className="mt-3 text-sm text-red-200">Aviso: {purchaseInfo.error}</p>
@@ -489,7 +397,6 @@ export default function ProdutosPage() {
           )}
         </div>
 
-        {/* LISTA DO CARRINHO */}
         {cart.length === 0 ? (
           <p className="text-slate-300">Carrinho vazio.</p>
         ) : (
